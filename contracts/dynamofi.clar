@@ -141,3 +141,62 @@
   )
   (and valid (validate-percentage current-percentage))
 )
+
+;; Adds portfolio ID to user's portfolio list
+(define-private (add-to-user-portfolios
+    (user principal)
+    (portfolio-id uint)
+  )
+  (let (
+      (current-portfolios (get-user-portfolios user))
+      (new-portfolios (unwrap! (as-max-len? (append current-portfolios portfolio-id) u20)
+        ERR-USER-STORAGE-FAILED
+      ))
+    )
+    (map-set UserPortfolios user new-portfolios)
+    (ok true)
+  )
+)
+
+;; Initializes a new portfolio asset
+(define-private (initialize-portfolio-asset
+    (index uint)
+    (token principal)
+    (percentage uint)
+    (portfolio-id uint)
+  )
+  (if (>= percentage u0)
+    (begin
+      (map-set PortfolioAssets {
+        portfolio-id: portfolio-id,
+        token-id: index,
+      } {
+        target-percentage: percentage,
+        current-amount: u0,
+        token-address: token,
+      })
+      (ok true)
+    )
+    ERR-INVALID-TOKEN
+  )
+)
+
+;; Helper function to initialize a token at a specific index
+(define-private (initialize-token-at-index
+    (index uint)
+    (portfolio-id uint)
+    (tokens (list 10 principal))
+    (percentages (list 10 uint))
+  )
+  (begin
+    (if (< index (len tokens))
+      (initialize-portfolio-asset index
+        (default-to 'SP000000000000000000002Q6VF78.dummy-token
+          (element-at tokens index)
+        )
+        (default-to u0 (element-at percentages index)) portfolio-id
+      )
+      (ok true)
+    )
+  )
+)
