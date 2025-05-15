@@ -200,3 +200,57 @@
     )
   )
 )
+
+;; Public Functions
+
+;; Creates a new portfolio with specified tokens and allocations
+(define-public (create-portfolio
+    (initial-tokens (list 10 principal))
+    (percentages (list 10 uint))
+  )
+  (let (
+      (portfolio-id (+ (var-get portfolio-counter) u1))
+      (token-count (len initial-tokens))
+      (percentage-count (len percentages))
+    )
+    (asserts! (<= token-count MAX-TOKENS-PER-PORTFOLIO) ERR-MAX-TOKENS-EXCEEDED)
+    (asserts! (is-eq token-count percentage-count) ERR-LENGTH-MISMATCH)
+    (asserts! (validate-portfolio-percentages percentages) ERR-INVALID-PERCENTAGE)
+    (asserts! (>= token-count u2) ERR-INVALID-PORTFOLIO)
+    ;; Ensure at least 2 tokens
+    ;; Create portfolio
+    (map-set Portfolios portfolio-id {
+      owner: tx-sender,
+      created-at: stacks-block-height,
+      last-rebalanced: stacks-block-height,
+      total-value: u0,
+      active: true,
+      token-count: token-count,
+    })
+    ;; Initialize first token (required minimum)
+    (try! (initialize-token-at-index u0 portfolio-id initial-tokens percentages))
+    ;; Initialize second token (required minimum)
+    (try! (initialize-token-at-index u1 portfolio-id initial-tokens percentages))
+    ;; Initialize third token if available
+    (try! (initialize-token-at-index u2 portfolio-id initial-tokens percentages))
+    ;; Initialize fourth token if available
+    (try! (initialize-token-at-index u3 portfolio-id initial-tokens percentages))
+    ;; Initialize fifth token if available
+    (try! (initialize-token-at-index u4 portfolio-id initial-tokens percentages))
+    ;; Initialize sixth token if available
+    (try! (initialize-token-at-index u5 portfolio-id initial-tokens percentages))
+    ;; Initialize seventh token if available
+    (try! (initialize-token-at-index u6 portfolio-id initial-tokens percentages))
+    ;; Initialize eighth token if available
+    (try! (initialize-token-at-index u7 portfolio-id initial-tokens percentages))
+    ;; Initialize ninth token if available
+    (try! (initialize-token-at-index u8 portfolio-id initial-tokens percentages))
+    ;; Initialize tenth token if available
+    (try! (initialize-token-at-index u9 portfolio-id initial-tokens percentages))
+    ;; Update user's portfolio list
+    (try! (add-to-user-portfolios tx-sender portfolio-id))
+    ;; Increment counter
+    (var-set portfolio-counter portfolio-id)
+    (ok portfolio-id)
+  )
+)
